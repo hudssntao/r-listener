@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                 String               @id @default(uuid())
+  username           String               @unique
+  displayName        String
+  bio                String
+  follower_count      Int?
+  following_count     Int?
+  is_verified         Boolean              @default(false)
+  ethnicity          Ethnicity?
+  gender             Gender?
+  age_group           AgeGroup?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  influencer Influencer?
+  restaurant Restaurant?
+  collaborations Reel[] @relation("ReelCollaborations")
+  analysis_status AnalysisStatus?
+}
+
+model Restaurant {
+  id        String   @id @default(uuid())
+  name      String
+  account_id String @unique
+
+  account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  influencer_relations Influencer[] @relation("RestaurantToInfluencer")
+}
+
+model Influencer {
+  id        String   @id @default(uuid())
+  account_id String @unique
+
+  account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  restaurant_relations Restaurant[] @relation("RestaurantToInfluencer")
+}
+
+model Reel {
+  id             String    @id @default(uuid())
+  caption        String
+  like_count      Int
+  comment_count   Int
+  share_count     Int
+  view_count      Int
+  gcloud_uri     String
+  uploaded_at  DateTime
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  comments       Comment[]
+  collaborators Account[] @relation("ReelCollaborations")
+}
+
+model Comment {
+  id             String    @id @default(uuid())
+  reel_id         String
+  username       String
+  text           String
+  like_count      Int
+  reply_count     Int
+  uploaded_at    DateTime
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  reel           Reel      @relation(fields: [reel_id], references: [id], onDelete: Cascade)
+}
+
+
+model AnalysisStatus {
+  id           String    @id @default(uuid())
+  account_id   String @unique
+  status       AnalysisState    @default(PENDING)
+  attempt_count     Int       @default(0)
+  last_attempt  DateTime?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  account   Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+}
+
+enum AnalysisState {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum Ethnicity {
+  ASIAN
+  BLACK
+  HISPANIC
+  MIDDLE_EASTERN
+  NATIVE_AMERICAN
+  PACIFIC_ISLANDER
+  WHITE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum AgeGroup {
+  YOUNG_ADULT
+  MIDDLE_AGED
+  SENIOR
+}
+
+

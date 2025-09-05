@@ -3,18 +3,38 @@
   "version": "1.0.0",
   "description": "Social listening across platforms for restaurants.",
   "homepage": "https://github.com/hudssntao/r-listener#readme",
-  "bugs": {
-    "url": "https://github.com/hudssntao/r-listener/issues"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/hudssntao/r-listener.git"
   },
-  "license": "ISC",
-  "author": "",
-  "type": "commonjs",
-  "main": "index.js",
+  "type": "module",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "pnpm test"
+    "build": "tsc",
+    "start": "tsc && node dist/index.js",
+    "wdio": "wdio run ./wdio.conf.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.0",
+    "@types/node": "^24.3.0",
+    "@wdio/appium-service": "^9.19.2",
+    "@wdio/cli": "^9.19.2",
+    "@wdio/local-runner": "^9.19.2",
+    "@wdio/mocha-framework": "^9.19.2",
+    "@wdio/spec-reporter": "^9.19.2",
+    "appium-xcuitest-driver": "^10.0.4",
+    "prisma": "^6.15.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.0",
+    "@google-cloud/vertexai": "^1.10.0",
+    "@prisma/client": "^6.15.0",
+    "axios": "^1.11.0",
+    "dotenv": "^17.2.2",
+    "google-auth-library": "^10.3.0",
+    "uuid": "^11.1.0",
+    "webdriverio": "^9.19.2",
+    "zod": "^4.1.5"
   }
 }

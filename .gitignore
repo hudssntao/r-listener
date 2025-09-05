@@ -1,0 +1,10 @@
+# Node
+node_modules/
+dist/
+
+# Environment
+.env*
+credentials/
+
+# Prisma
+/generated/prisma

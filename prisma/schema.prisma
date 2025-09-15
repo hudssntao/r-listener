@@ -17,7 +17,7 @@ datasource db {
 model Account {
   id                 String               @id @default(uuid())
   username           String               @unique
-  displayName        String
+  display_name        String
   bio                String
   follower_count      Int?
   following_count     Int?
@@ -32,12 +32,12 @@ model Account {
   influencer Influencer?
   restaurant Restaurant?
   collaborations Reel[] @relation("ReelCollaborations")
+  reel_mentions Reel[] @relation("ReelMentions")
   analysis_status AnalysisStatus?
 }
 
 model Restaurant {
   id        String   @id @default(uuid())
-  name      String
   account_id String @unique
 
   account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
@@ -58,14 +58,13 @@ model Reel {
   like_count      Int
   comment_count   Int
   share_count     Int
-  view_count      Int
-  gcloud_uri     String
   uploaded_at  DateTime
   created_at      DateTime  @default(now())
   updated_at      DateTime  @updatedAt
 
   comments       Comment[]
   collaborators Account[] @relation("ReelCollaborations")
+  mentions Account[] @relation("ReelMentions")
 }
 
 model Comment {

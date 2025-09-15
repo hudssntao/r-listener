@@ -1,20 +1,40 @@
+import type { z } from "zod";
 import type { Completion } from "@/gcp/clients/vertex-completion.client";
-import type { AVAILABLE_ANALYSES } from "./config";
 import type { MEDIA_TYPE } from "./constants";
+import type {
+  COMMENT_SECTION_SCHEMA,
+  INSTAGRAM_PROFILE_SCHEMA,
+} from "./schemas";
 
-export type MediaAnalysisInput =
+export type MediaAnalysisInput<T> =
   | {
-      type: MEDIA_TYPE.IMAGE;
       image_file_path: string;
-      analysis_name: AVAILABLE_ANALYSES;
+
+      type: MEDIA_TYPE.IMAGE;
+      config: {
+        prompt: string;
+        schema: z.ZodSchema<T>;
+      };
     }
   | {
-      type: MEDIA_TYPE.VIDEO;
       video_gcloud_uri: string;
-      analysis_name: AVAILABLE_ANALYSES;
+
+      type: MEDIA_TYPE.VIDEO;
+      config: {
+        prompt: string;
+        schema: z.ZodSchema<T>;
+      };
     };
 
-export type MediaAnalysisResult = {
+export type MediaAnalysisResult<T> = {
   completion: Completion | null;
-  parsed: any;
+  parsed: T;
 };
+
+export type InstagramProfileAnalysisResult = z.infer<
+  typeof INSTAGRAM_PROFILE_SCHEMA
+>;
+
+export type CommentSectionAnalysisResult = z.infer<
+  typeof COMMENT_SECTION_SCHEMA
+>;

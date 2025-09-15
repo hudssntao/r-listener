@@ -1,3 +1,4 @@
+import { GoogleGenAI } from "@google/genai";
 import {
   type GenerateContentResult,
   type GenerativeModel,
@@ -23,7 +24,10 @@ interface ModelPricing {
   outputCostPer1M: number; // Cost per 1M output tokens in USD
 }
 
-type VertexModel = "gemini-2.5-flash" | "gemini-2.5-flash-lite";
+export type VertexModel =
+  | "gemini-2.5-flash"
+  | "gemini-2.5-flash-lite"
+  | "gemini-2.0-flash";
 
 /*
  * INFO: Client for interfacing with the VertexAI API.
@@ -39,6 +43,10 @@ export class VertexCompletionClient {
       inputCostPer1M: 0.1,
       outputCostPer1M: 0.4,
     },
+    "gemini-2.0-flash": {
+      inputCostPer1M: 0.1,
+      outputCostPer1M: 0.4,
+    },
   };
 
   private readonly defaultRetryConfig: RetryConfig = {
@@ -47,15 +55,28 @@ export class VertexCompletionClient {
     maxDelay: 10 * 1000,
   };
 
+  private model_name: VertexModel;
   private model: GenerativeModel;
   private modelConfig: ModelPricing;
   private vertex_client: VertexAI;
+  private ai: GoogleGenAI;
 
   constructor(
     model_name: VertexModel,
     private file_manager: FileManager,
     credentials: CredentialBody,
   ) {
+    this.model_name = model_name;
+
+    this.ai = new GoogleGenAI({
+      vertexai: true,
+      project: process.env["GCP_PROJECT_ID"],
+      location: process.env["GCP_PROJECT_REGION"],
+      googleAuthOptions: {
+        credentials: credentials,
+      },
+    });
+
     this.vertex_client = new VertexAI({
       project: process.env["GCP_PROJECT_ID"],
       location: process.env["GCP_PROJECT_REGION"],
@@ -198,9 +219,13 @@ export class VertexCompletionClient {
     temperature?: number,
   ): Promise<Completion | null> {
     const response = await this.retryWithExponentialBackoff(async () => {
-      const result = await this.model.generateContent({
-        generationConfig: {
+      const result = await this.ai.models.generateContent({
+        model: this.model_name,
+        config: {
           temperature,
+          thinkingConfig: {
+            thinkingBudget: 0,
+          },
         },
         contents: [
           {
@@ -220,7 +245,9 @@ export class VertexCompletionClient {
         ],
       });
 
-      const text = result.response.candidates?.[0]?.content.parts[0]?.text;
+      console.log(JSON.stringify(result, null, 2));
+
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!text) {
         throw new Error(
@@ -230,7 +257,7 @@ export class VertexCompletionClient {
 
       const response = json_mode ? this.parseResultIntoJSON(text) : text;
 
-      return { response, cost: this.calculateCost(result) };
+      return { response, cost: 0 }; // TODO: Add cost calculation
     });
 
     return response;
